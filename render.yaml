@@ -1,0 +1,14 @@
+# One-click hosting on Render (free plan gives a public HTTPS link).
+services:
+  - type: web
+    name: gym-crowd-tracker
+    runtime: node
+    plan: free
+    buildCommand: npm run setup
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: NODE_VERSION
+        value: 22.13.0

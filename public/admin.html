@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Staff dashboard – Gym Crowd Tracker</title>
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <script src="/theme.js"></script>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <img src="/img/logo.svg" alt="Gym Crowd Tracker logo">
+      <h1>Staff dashboard<small id="whoSmall">Gym Crowd Tracker</small></h1>
+      <button type="button" class="icon-btn" id="themeBtn" aria-label="Theme">
+        <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="i-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>
+      </button>
+      <a class="pill-link" href="/">Visitor view</a>
+    </div>
+  </header>
+
+  <main class="wrap grid">
+    <!-- R5: staff sign-in -->
+    <section class="card" id="loginCard" aria-labelledby="loginTitle">
+      <h2 id="loginTitle">Staff sign-in</h2>
+      <p class="hint">Test accounts: admin / Admin#2026 · analyst / Analyst#2026</p>
+      <form id="loginForm">
+        <label for="username">Username</label>
+        <input type="text" id="username" autocomplete="username" required>
+        <label for="password">Password</label>
+        <input type="password" id="password" autocomplete="current-password" required>
+        <div class="row actions"><button type="submit">Sign in</button></div>
+      </form>
+      <div id="loginMsg" class="toast" role="status" aria-live="polite"></div>
+    </section>
+
+    <div id="dash" class="grid hidden">
+      <section class="card row" aria-label="Signed-in user">
+        <p><strong id="whoami"></strong><br><span class="hint" id="roleHint"></span></p>
+        <div class="row">
+          <a class="pill-link" href="/api/admin/export.csv" download>Export CSV</a>
+          <button type="button" class="secondary small" id="logoutBtn">Sign out</button>
+        </div>
+      </section>
+      <nav class="tabs" aria-label="Sections">
+        <a href="#overview">Overview</a><a href="#analytics">Analytics</a><a href="#sensors">Sensors</a><a href="#qr">QR codes</a><a href="#staff">Staff</a>
+      </nav>
+
+      <!-- R6: daily statistics -->
+      <section id="overview" aria-labelledby="kpiTitle">
+        <h2 id="kpiTitle" class="sr-only">Overview</h2>
+        <div class="kpis">
+          <div class="kpi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/></svg></div><div><span>Inside right now</span><strong id="kOpen">–</strong></div></div>
+          <div class="kpi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"/></svg></div><div><span>Check-ins today</span><strong id="kToday">–</strong></div></div>
+          <div class="kpi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg></div><div><span>Completed visits</span><strong id="kDone">–</strong></div></div>
+          <div class="kpi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div><span>Auto check-outs (3 h)</span><strong id="kAuto">–</strong></div></div>
+        </div>
+      </section>
+
+      <div class="grid two-even">
+        <section class="card"><h3>Live crowd level</h3><ul class="gymlive" id="liveList"></ul></section>
+        <section class="card"><h3>Check-ins per day · last 14 days</h3><ul class="bars" id="dailyChart"></ul></section>
+      </div>
+
+      <div id="analytics" class="grid two-even">
+        <section class="card"><h3>Q1 · Arrivals by hour (completed visits)</h3><ul class="bars" id="hourChart"></ul><details><summary>SQL query behind this chart</summary><pre id="sqlHourly"></pre></details></section>
+        <section class="card"><h3>Q2 · Visits by gym</h3><ul class="bars" id="gymChart"></ul><details><summary>SQL query behind this chart</summary><pre id="sqlByGym"></pre></details></section>
+        <section class="card"><h3>Q3 · Average visit duration, minutes</h3><ul class="bars" id="durChart"></ul><details><summary>SQL query behind this chart</summary><pre id="sqlDuration"></pre></details></section>
+        <section class="card" id="sensors">
+          <h3>Smart extension · simulated doorway sensors</h3>
+          <p class="hint">Each click saves one estimated-occupancy reading per gym (origin = simulation). Admin role only.</p>
+          <div class="actions"><button type="button" class="small" id="simBtn">Generate sensor readings</button></div>
+          <div id="simMsg" class="toast" role="status" aria-live="polite"></div>
+          <table><thead><tr><th>#</th><th>Gym</th><th>Estimate</th><th>Time</th><th>Flag</th></tr></thead><tbody id="readings"></tbody></table>
+        </section>
+      </div>
+
+      <!-- R7: entrance / exit QR codes -->
+      <section class="card" id="qr" aria-labelledby="qrTitle">
+        <h3 id="qrTitle">Entrance and exit QR codes</h3>
+        <p class="hint">"Poster" opens a printable sign for the door. "New code" deactivates the old one (use it if a code was photographed and shared).
+          For phones on the same Wi-Fi, start the server with HOST=0.0.0.0 and open this page through the laptop's IP address.</p>
+        <p class="banner" id="qrBase"></p>
+        <div id="qrMsg" class="toast" role="status" aria-live="polite"></div>
+        <div class="qr-grid" id="qrGrid"></div>
+      </section>
+
+      <!-- Staff accounts: register a new staff member (admin only) -->
+      <section class="card" id="staff" aria-labelledby="staffTitle">
+        <h3 id="staffTitle">Staff accounts</h3>
+        <p class="hint">Admin only. The password is stored as a scrypt hash with a random salt, never as plain text.</p>
+        <form id="staffForm">
+          <div class="row">
+            <div><label for="newUser">Username</label><input type="text" id="newUser" autocomplete="off" required></div>
+            <div><label for="newPass">Password</label><input type="password" id="newPass" autocomplete="new-password" required></div>
+            <div><label for="newRole">Role</label><select id="newRole"><option value="analyst">analyst</option><option value="admin">admin</option></select></div>
+          </div>
+          <div class="row actions"><button type="submit" class="small">Register staff member</button></div>
+        </form>
+        <div id="staffMsg" class="toast" role="status" aria-live="polite"></div>
+        <table><thead><tr><th>#</th><th>Username</th><th>Role</th><th>Last sign-in</th></tr></thead><tbody id="staffTable"></tbody></table>
+      </section>
+    </div>
+  </main>
+  <footer>Group SE-2620 · ICT Project</footer>
+  <script src="/admin.js"></script>
+</body>
+</html>
